@@ -56,7 +56,7 @@ class World:
         self.mouse = MouseSystem()
 
         self.preview_sprite = pygame.sprite.GroupSingle()
-        self.preview_sprite.add(BasicSprite((0, 0), "graphics/Block0.png"))
+        self.preview_sprite.add(BasicSprite((0, 0), "../graphics/Block0.png"))
         self.placing = 1
         self.rotate_cd = False
         self.save_cd = False
@@ -95,7 +95,7 @@ class World:
         # self.player_sprite = pygame.sprite.GroupSingle()
         self.player_sprite.add(self.player)
         # self.killers = pygame.sprite.Group()
-        # self.killers.add(Killer((100, 200), "graphics/SpikeUp.png"))
+        # self.killers.add(Killer((100, 200), "../graphics/SpikeUp.png"))
 
     def create(self):
         keys = pygame.key.get_pressed()
@@ -121,17 +121,17 @@ class World:
                 self.rotate_cd = True
                 self.place_angle += 90
                 if self.placing == 2:
-                    self.preview_sprite.add(BasicSprite(pos, "graphics/SpikeUp.png", start_angle=self.place_angle))
+                    self.preview_sprite.add(BasicSprite(pos, "../graphics/SpikeUp.png", start_angle=self.place_angle))
         else:
             self.rotate_cd = False
 
         if keys[pygame.K_1]:
             self.placing = 1
-            self.preview_sprite.add(BasicSprite(pos, "graphics/Block0.png"))
+            self.preview_sprite.add(BasicSprite(pos, "../graphics/Block0.png"))
         elif keys[pygame.K_2]:
             self.place_angle = 0
             self.placing = 2
-            self.preview_sprite.add(BasicSprite(pos, "graphics/SpikeUp.png", start_angle=self.place_angle))
+            self.preview_sprite.add(BasicSprite(pos, "../graphics/SpikeUp.png", start_angle=self.place_angle))
 
         if keys[pygame.K_BACKSPACE]:
             self.delete(pos)
@@ -231,11 +231,11 @@ class Player(pygame.sprite.Sprite):
         super().__init__()
         self.frame = 0
 
-        self.original_image = pygame.image.load("graphics/PlayerIdle.png").convert_alpha()
+        self.original_image = pygame.image.load("../graphics/PlayerIdle.png").convert_alpha()
 
         self.image = self.original_image
 
-        self.mask = pygame.mask.from_surface(pygame.image.load("graphics/PlayerMask.png").convert_alpha())
+        self.mask = pygame.mask.from_surface(pygame.image.load("../graphics/PlayerMask.png").convert_alpha())
         mask_rect = (self.mask.get_bounding_rects())[0]
         self.offset = pygame.math.Vector2(mask_rect[0], mask_rect[1])
 
@@ -366,7 +366,7 @@ class Player(pygame.sprite.Sprite):
 class Block(pygame.sprite.Sprite):
     def __init__(self, pos):
         super().__init__()
-        self.image = pygame.image.load("graphics/Block0.png").convert_alpha()
+        self.image = pygame.image.load("../graphics/Block0.png").convert_alpha()
         self.rect = pygame.Rect(pos, (32, 32))
 
     def draw(self):
@@ -374,7 +374,7 @@ class Block(pygame.sprite.Sprite):
 
 
 class Killer(pygame.sprite.Sprite):
-    def __init__(self, pos, image="graphics/SpikeUp.png", start_angle=0):
+    def __init__(self, pos, image="../graphics/SpikeUp.png", start_angle=0):
         super().__init__()
         self.image_data = image
         self.original_image = pygame.image.load(self.image_data).convert_alpha()
