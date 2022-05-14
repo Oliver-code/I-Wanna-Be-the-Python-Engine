@@ -35,7 +35,6 @@ game_mode = settings.game_mode
 # width = 20
 # height = 20
 
-
 # functions
 def cap(value, joe, the_cap):
     if value > the_cap:
@@ -83,7 +82,7 @@ def load_data(lines):
     loaded_list = []
     for letter in str(data_list):
         if not comment:
-            if letter.isdigit():
+            if letter.isdigit() or letter == "-":
                 concat += letter
             elif letter == ",":
                 if concat:
@@ -98,6 +97,7 @@ def load_data(lines):
 
                 if id == 0:
                     tiles.add(Block((temp[-2], temp[-1])))
+                    print(temp[-1])
                 elif id >= 1:
                     killers.add(Killer((temp[-3], temp[-2]), start_angle=temp[-1], tile_id=id))
 
@@ -155,17 +155,7 @@ def old_loader():
     return tiles, killers
 
 
-def check_in_bounds(rect):
-    if rect.left > screen_width or rect.right < 0 or rect.top > screen_height or rect.bottom < 0:
-        return False
-    return True
 
-
-def wrap(rect):
-    if rect.left > screen_width or rect.right < 0:
-        return math.fabs(rect.left - screen_width), rect.top
-    if rect.top > screen_height or rect.bottom < 0:
-        return rect.left, math.fabs(rect.left - screen_width)
 
 
 def distance(pos1, pos2):
@@ -194,7 +184,7 @@ class World:
         self.preview_sprite = pygame.sprite.GroupSingle()
         self.preview_sprite.add(BasicSprite((0, 0), self.images[0]))
         self.placing = 1
-        self.snap = 32
+        self.snap = 16
         self.snap_toggle = 1
         self.snap_cd = False
         self.rotate_cd = False
@@ -266,7 +256,7 @@ class World:
         # self.player.hitbox.topleft = self.startpos
         self.player = player.Player(self.save_position)
         self.player_sprite.add(self.player)
-        self.camera_offset.xy = (0, 0)
+        self.scroll()
 
     def create(self):
         keys = self.keys
@@ -291,22 +281,22 @@ class World:
         # old cam controls
         if game_mode == 1:
             cam_speed = 10
-            fast = True
+            fast = False
             if keys[pygame.K_LEFTBRACKET]:
                 if not self.cam_cd or fast:
-                    self.camera_offset.x += cam_speed
+                    self.camera_offset.x += settings.width
                 self.cam_cd = True
             elif keys[pygame.K_BACKSLASH]:
                 if not self.cam_cd or fast:
-                    self.camera_offset.x -= cam_speed
+                    self.camera_offset.x -= settings.width
                 self.cam_cd = True
             elif keys[pygame.K_RIGHTBRACKET]:
                 if not self.cam_cd or fast:
-                    self.camera_offset.y -= cam_speed
+                    self.camera_offset.y -= settings.height
                 self.cam_cd = True
             elif keys[pygame.K_EQUALS]:
                 if not self.cam_cd or fast:
-                    self.camera_offset.y += cam_speed
+                    self.camera_offset.y += settings.height
                 self.cam_cd = True
             else:
                 self.cam_cd = False
@@ -354,7 +344,7 @@ class World:
             self.preview_sprite.add(BasicSprite(preview_pos, self.images[2], start_angle=self.place_angle))
 
         if keys[pygame.K_BACKSPACE]:
-            self.delete(snap_pos, tolerance=30)
+            self.delete(snap_pos, tolerance=10)
 
         if keys[pygame.K_DELETE]:
             self.killers.empty()
