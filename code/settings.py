@@ -1,14 +1,13 @@
 import os, sys
-game_mode = 3
+game_mode = 1
 game_path = os.path.abspath("main.py")
-print(game_path)
 
-scale = 6.5
+scale = 6
 
 width = scale * 32*4
 height = scale * 32*3
 
-directory = "../"
+directory = "/Users/oliverAccount/PycharmProjects/IWBTripoff/"
 if game_mode == 3:
     application_path = os.path.dirname(sys.executable)
     directory = application_path+"/"
