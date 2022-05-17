@@ -1,5 +1,7 @@
 import pygame
 import settings
+import __main__
+
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos):
@@ -37,16 +39,15 @@ class Player(pygame.sprite.Sprite):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_RIGHT]:
             self.velocity.x = 1 * self.speed
-            self.image = self.original_image
             self.direction = 1
         elif keys[pygame.K_LEFT]:
             self.velocity.x = -1 * self.speed
-            self.image = pygame.transform.flip(self.original_image, True, False)
             self.direction = -1
         else:
             self.velocity.x = 0
 
         if (keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]) and self.jump_cooldown == False:
+
             self.jump_cooldown = True
             if self.jumps_counter == 0 and self.grounded:
                 self.velocity.y = self.jump_vel - self.gravity
@@ -118,18 +119,20 @@ class Player(pygame.sprite.Sprite):
 
     def update_sprite(self):
         self.rect.topleft = self.hitbox.topleft - self.offset
+        self.image = self.original_image
+
         if self.direction == -1:
             self.rect.topleft = (self.rect.topleft[0] + 3, self.rect.topleft[1])
+            self.image = pygame.transform.flip(self.original_image, True, False)
+
 
     def update(self, tiles, killers):
         self.frame += 1
         self.input()
-        self.check_grounded(tiles)
-        self.block_collision(tiles)
+        self.check_grounded(__main__.level["tiles"])
+        self.block_collision(__main__.level["tiles"])
         self.update_sprite()
-        if self.kill_collision(killers):
+        if self.kill_collision(__main__.level["killers"]):
             self.dead = True
 
-    def draw(self):
-        # pygame.draw.rect(screen, "Black", self.hitbox)
-        pass
+
