@@ -17,6 +17,13 @@ screen_height = settings.height
 # pygame setup
 pygame.init()
 
+pygame.mixer.music.load("../sounds/Moonsong.ogg")
+pygame.mixer.music.set_volume(0.5)
+
+pygame.mixer.init()
+death_sound = pygame.mixer.Sound("../sounds/vine-boom.mp3")
+death_sound.set_volume(0.1)
+
 pygame.font.init()
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("I Wanna Steal The Intellectual Property!")
@@ -157,13 +164,15 @@ def distance(pos1, pos2):
     dist = math.sqrt((pos2[0] - pos1[0]) ** 2 + (pos2[1] - pos1[1]) ** 2)
     return dist
 
+
 def draw_offset(sprites, offset):
     for sprite in sprites:
         sprite.rect.center += offset
     sprites.draw(screen)
     for sprite in sprites:
         sprite.rect.center -= offset
-        
+
+
 # Classes
 class World:
     def __init__(self):
@@ -171,7 +180,17 @@ class World:
         self.startpos = (40, 250)
         self.camera_offset = pygame.math.Vector2(0, 0)
 
-        self.images = settings.image_dict
+        self.images = settings.tile_set2
+        self.tile_sprites = pygame.sprite.Group()
+        self.tile_sprites.add(Block((32, 288)))
+        self.bg_visuals = pygame.sprite.Group()
+        self.visuals = pygame.sprite.Group()
+        self.death_screen = pygame.sprite.GroupSingle()
+        self.bg_visuals.add(BasicSprite((835, 110), self.images["troll"], size=0.55))
+        self.visuals.add(BasicSprite((10, 950), self.images["bag"]))
+        self.visuals.add(BasicSprite((2094, 625), self.images["burto"], size=1))
+        self.death_screen.add(BasicSprite((100, 200), self.images["death_screen"]))
+
         self.player = player.Player(self.startpos)
         self.save_position = self.player.hitbox.topleft
         self.save_facing = self.player.direction
@@ -179,6 +198,8 @@ class World:
         self.player_sprite.add(self.player)
         self.mouse = MouseSystem()
         self.key_sys = KeySystem()
+
+        self.death_cd = False
 
         self.preview_sprite = pygame.sprite.GroupSingle()
         self.preview_sprite.add(BasicSprite((0, 0), self.images[0]))
@@ -207,6 +228,10 @@ class World:
                 level["killers"].remove(sprite)
 
     def draw(self):
+        self.bg_visuals.draw(screen)
+
+        draw_offset(self.visuals, self.camera_offset)
+
         draw_offset(level["tiles"], self.camera_offset)
         draw_offset(level["killers"], self.camera_offset)
         draw_offset(self.player_sprite, self.camera_offset)
@@ -235,14 +260,23 @@ class World:
                     pygame.draw.line(screen, color, (0, self.camera_offset.y % line_distane + i * line_distane),
                                      (screen_width, self.camera_offset.y % line_distane + i * line_distane),
                                      width=width)
+        if self.death_cd:
+            self.death_screen.draw(screen)
+
 
     def run(self):
         # does collision
         if game_mode >= 2:
             self.scroll()
-        self.player.update()
-        if self.player.dead:
+
+        if self.player.dead and not self.death_cd:
             self.reset()
+            self.player.kill()
+            death_sound.play()
+            self.death_cd = True
+        else:
+            self.player.update()
+
         if game_mode == 1:
             self.create()
             self.mouse.update()
@@ -268,6 +302,8 @@ class World:
         self.player.direction = self.save_facing
         self.player_sprite.add(self.player)
         self.scroll()
+        self.death_cd = False
+
 
     def create(self):
         keys = self.key_sys
@@ -456,7 +492,7 @@ class KeySystem:
 class Block(pygame.sprite.Sprite):
     def __init__(self, pos):
         super().__init__()
-        self.image_data = settings.image_dict[0]
+        self.image_data = settings.tile_set2[0]
         self.image = pygame.image.load(self.image_data).convert_alpha()
         self.init_pos = pos
         self.rect = pygame.Rect(pos, (32, 32))
@@ -469,7 +505,7 @@ class Block(pygame.sprite.Sprite):
 class Killer(pygame.sprite.Sprite):
     def __init__(self, pos, tile_id=1, start_angle=0):
         super().__init__()
-        self.image_data = settings.image_dict[tile_id]
+        self.image_data = settings.tile_set2[tile_id]
         self.original_image = pygame.image.load(self.image_data).convert_alpha()
         self.image = pygame.image.load(self.image_data).convert_alpha()
         self.tile_id = tile_id
@@ -483,7 +519,7 @@ class Killer(pygame.sprite.Sprite):
 
 
 class BasicSprite(pygame.sprite.Sprite):
-    def __init__(self, pos, image, start_angle=0):
+    def __init__(self, pos, image, start_angle=0, size=1):
         super().__init__()
         self.image_data = image
         self.original_image = pygame.image.load(self.image_data).convert_alpha()
@@ -492,12 +528,16 @@ class BasicSprite(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(topleft=pos)
         self.angle = start_angle % 360
         self.image = pygame.transform.rotate(self.original_image, self.angle)
+        self.image = pygame.transform.scale(self.image, (self.image.get_width()*size, self.image.get_height()*size))
+
+
+
 
 
 class Save(pygame.sprite.Sprite):
     def __init__(self, pos):
         super().__init__()
-        self.image_data = settings.image_dict["Save0"]
+        self.image_data = settings.tile_set2["Save0"]
         self.image = pygame.image.load(self.image_data).convert_alpha()
         self.init_pos = pos
         self.rect = self.image.get_rect()
@@ -514,6 +554,11 @@ level = {
     )
 
 }
+
+pygame.mixer.music.play(-1)
+bg = pygame.image.load("../graphics/bkMoon.pbm")
+bg_size = 3.3
+bg = pygame.transform.scale(bg, (bg.get_width()*bg_size, bg.get_height()*bg_size))
 
 world = World()
 # Game loop
@@ -534,6 +579,7 @@ while is_running:
 
     # white background
     screen.fill("#FFFFFF")
+    screen.blit(bg, (0, 0))
 
     world.run()
 
@@ -544,7 +590,8 @@ while is_running:
     screen.blit(fps_text, (screen_width - 30, 0))
 
     # cords
-    cords_text = font.render(f"({round(world.snap_pos[0])}, {round(world.snap_pos[1])}, {world.player.hitbox.left%3})", True, "Black")
+    cords_text = font.render(
+        f"({round(world.snap_pos[0])}, {round(world.snap_pos[1])}, {world.player.hitbox.left % 3})", True, "Black")
     screen.blit(cords_text, (3, 0))
 
     # you need this at end of loop, it updates the screen and limits the frame rate
