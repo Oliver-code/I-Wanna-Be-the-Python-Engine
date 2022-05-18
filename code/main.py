@@ -103,7 +103,6 @@ def load_data(lines):
 
                 if id == 0:
                     tiles.add(Block((temp[-2], temp[-1])))
-                    print(temp[-1])
                 elif id >= 1:
                     killers.add(Killer((temp[-3], temp[-2]), start_angle=temp[-1], tile_id=id))
 
@@ -192,7 +191,7 @@ class World:
         self.death_screen.add(BasicSprite((100, 200), self.images["death_screen"]))
 
         self.player = player.Player(self.startpos)
-        self.save_position = self.player.hitbox.topleft
+        self.save_position = self.player.position
         self.save_facing = self.player.direction
         self.player_sprite = pygame.sprite.GroupSingle()
         self.player_sprite.add(self.player)
@@ -243,7 +242,7 @@ class World:
                 for i in range(int(screen_width / line_distane) + 1):
                     # print(self.camera_offset.x % line_distane + i * line_distane)
 
-                    color = "Black"
+                    color = "White"
                     width = 1
                     if (
                             self.camera_offset.x % line_distane + i * line_distane) - self.camera_offset.x % screen_width == 0:
@@ -252,7 +251,7 @@ class World:
                                      (self.camera_offset.x % line_distane + i * line_distane, screen_height),
                                      width=width)
                 for i in range(int(screen_height / line_distane) + 1):
-                    color = "Black"
+                    color = "White"
                     width = 1
                     if (
                             self.camera_offset.y % line_distane + i * line_distane) - self.camera_offset.y % screen_height == 0:
@@ -297,7 +296,7 @@ class World:
         self.save_facing = self.player.direction
 
     def reset(self):
-        # self.player.hitbox.topleft = self.startpos
+        # self.player.position = self.startpos
         self.player = player.Player(self.save_position)
         self.player.direction = self.save_facing
         self.player_sprite.add(self.player)
@@ -358,7 +357,7 @@ class World:
         #                          self.camera_offset.y % bg_size[1] + (v-1) * bg_size[1]))
 
         if keys.individual_frame_down[pygame.K_w]:
-            self.player.hitbox.center = (pos)
+            self.player.position = (pos)
 
         if keys.individual_frame_down[pygame.K_TAB]:
             self.snap_toggle += 1
@@ -405,7 +404,7 @@ class World:
             level["killers"].empty()
             level["tiles"].empty()
             level["tiles"].add(Block((32, 288)))
-            self.player.hitbox.topleft = self.startpos
+            self.player.position = self.startpos
             self.save()
             self.reset()
 
@@ -586,12 +585,12 @@ while is_running:
     world.draw()
 
     # show FPS
-    fps_text = font.render(str(round(FPS.get_fps(), 1)), True, "Black")
+    fps_text = font.render(str(round(FPS.get_fps(), 1)), True, "White")
     screen.blit(fps_text, (screen_width - 30, 0))
 
     # cords
     cords_text = font.render(
-        f"({round(world.snap_pos[0])}, {round(world.snap_pos[1])}, {world.player.hitbox.left % 3})", True, "Black")
+        f"({round(world.snap_pos[0])}, {round(world.snap_pos[1])}, {world.player.position.x % 3})", True, "White")
     screen.blit(cords_text, (3, 0))
 
     # you need this at end of loop, it updates the screen and limits the frame rate
