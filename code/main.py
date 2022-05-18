@@ -178,6 +178,7 @@ class World:
         # self.tiles = [, Block((200, 200), (50, 100)), Block((300, 100), (50, 100))]
         self.startpos = (40, 250)
         self.camera_offset = pygame.math.Vector2(0, 0)
+        self.bg_offset = 0
 
         self.images = settings.tile_set2
         self.tile_sprites = pygame.sprite.Group()
@@ -227,6 +228,15 @@ class World:
                 level["killers"].remove(sprite)
 
     def draw(self):
+        #BAD FIX LATER
+         self.looping_image(backgrouds[4], 0)
+        self.looping_image(backgrouds[3], 0.1)
+        self.looping_image(backgrouds[2], 0.3)
+        self.looping_image(backgrouds[1], 0.5)
+        self.looping_image(backgrouds[0], 1)
+        self.bg_offset -= 10
+        
+        
         self.bg_visuals.draw(screen)
 
         draw_offset(self.visuals, self.camera_offset)
@@ -291,6 +301,15 @@ class World:
         self.camera_offset = pygame.math.Vector2(-round_down(player_pos[0], screen_size[0]),
                                                  -round_down(player_pos[1], screen_size[1]))
 
+        
+    def looping_image(self, image,speed):
+        bg_size = image.get_size()
+        for i in range(int(screen_width / bg_size[0]) + 2):
+            for v in range(int(screen_height / bg_size[1]) + 2):
+                screen.blit(image, (((self.camera_offset.x+self.bg_offset)*speed % bg_size[0]) + (i-1) * bg_size[0],
+                                 0 + (v - 1) * bg_size[1]))
+                
+                
     def save(self):
         self.save_position = self.player.hitbox.topleft
         self.save_facing = self.player.direction
@@ -555,10 +574,15 @@ level = {
 }
 
 pygame.mixer.music.play(-1)
-bg = pygame.image.load("../graphics/bkMoon.pbm")
-bg_size = 3.3
-bg = pygame.transform.scale(bg, (bg.get_width()*bg_size, bg.get_height()*bg_size))
 
+bg_scale = 2.8
+backgrouds = []
+for i in range(5):
+    bg = pygame.image.load("../graphics/moon_bg_sheet.png").convert_alpha()
+    bg = pygame.transform.scale(bg, (bg.get_width() * bg_scale, bg.get_height() * bg_scale))
+    bg = bg.subsurface(((i*bg.get_width()/6, 0), (bg.get_width()/6, bg.get_height())))
+    backgrouds.append(bg)
+    
 world = World()
 # Game loop
 while is_running:
@@ -577,8 +601,7 @@ while is_running:
                 sys.exit()
 
     # white background
-    screen.fill("#FFFFFF")
-    screen.blit(bg, (0, 0))
+    screen.fill("#000000")
 
     world.run()
 
