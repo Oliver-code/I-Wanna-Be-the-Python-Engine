@@ -8,11 +8,11 @@ class Player(pygame.sprite.Sprite):
         super().__init__()
         self.frame = 0
 
-        self.original_image = pygame.image.load(settings.image_dict["PlayerIdle"]).convert_alpha()
+        self.original_image = pygame.image.load(settings.tile_set2["PlayerIdle"]).convert_alpha()
 
         self.image = self.original_image
 
-        self.mask = pygame.mask.from_surface(pygame.image.load(settings.image_dict["PlayerMask"]).convert_alpha())
+        self.mask = pygame.mask.from_surface(pygame.image.load(settings.tile_set2["PlayerMask"]).convert_alpha())
         mask_rect = (self.mask.get_bounding_rects())[0]
         self.offset = pygame.math.Vector2(mask_rect[0], mask_rect[1])
 
@@ -20,7 +20,7 @@ class Player(pygame.sprite.Sprite):
         self.jump_vel = 8.5
         self.djump_vel = 7
         self.jumps = 2
-        self.gravity = 0.4
+        self.gravity =  0.4
         self.jump_cooldown = True
         self.max_fall = 9
 
@@ -30,8 +30,9 @@ class Player(pygame.sprite.Sprite):
         self.velocity = pygame.math.Vector2(0, 0)
         self.direction = 1
 
+        self.position = pygame.math.Vector2(pos)
         self.hitbox = mask_rect
-        self.hitbox.topleft = pos
+        self.hitbox.topleft = self.position
         self.rect = self.image.get_rect()  # pygame.Rect(pos, (size[0], size[1]))
         self.update_sprite()
 
@@ -64,7 +65,7 @@ class Player(pygame.sprite.Sprite):
 
     def check_grounded(self, tiles):
         for tile in tiles:
-            temp_rect = pygame.Rect((self.hitbox.topleft), (self.hitbox.size[0], self.hitbox.size[1] + 1))
+            temp_rect = pygame.Rect((self.position), (self.hitbox.size[0], self.hitbox.size[1] + 1))
             if temp_rect.colliderect(tile.rect):
                 self.grounded = True
                 self.jumps_counter = 0
@@ -79,22 +80,28 @@ class Player(pygame.sprite.Sprite):
         self.vertical(tiles)
 
     def horizontal(self, tiles):
-        self.hitbox.x += self.velocity.x
+        self.position.x += self.velocity.x
+        self.hitbox.topleft = self.position
         for tile in tiles:
             if self.hitbox.colliderect(tile.rect):
                 if self.velocity.x < 0:
                     self.hitbox.left = tile.rect.right
                     self.velocity.x = 0
+                    self.position.x = self.hitbox.left
                 elif self.velocity.x > 0:
                     self.hitbox.right = tile.rect.left
                     self.velocity.x = 0
+                    self.position.x = self.hitbox.left
+
 
     def vertical(self, tiles):
 
         if not self.grounded:
             self.apply_gravity()
 
-        self.hitbox.y -= self.velocity.y
+        self.position.y -= self.velocity.y
+        self.hitbox.topleft = self.position
+
         for tile in tiles:
             if self.hitbox.colliderect(tile.rect):
                 if self.velocity.y < 0:
@@ -102,9 +109,12 @@ class Player(pygame.sprite.Sprite):
                     self.velocity.y = 0
                     self.grounded = True
                     self.jumps_counter = 0
+                    self.position.y = self.hitbox.top
                 elif self.velocity.y > 0:
                     self.hitbox.top = tile.rect.bottom
                     self.velocity.y = 0
+                    self.position.y = self.hitbox.top
+
 
     def kill_collision(self, killers):
         for sprite in killers:
@@ -118,7 +128,7 @@ class Player(pygame.sprite.Sprite):
             self.velocity.y = self.max_fall * -1
 
     def update_sprite(self):
-        self.rect.topleft = self.hitbox.topleft - self.offset
+        self.rect.topleft = self.position - self.offset
         self.image = self.original_image
 
         if self.direction == -1:
@@ -126,7 +136,7 @@ class Player(pygame.sprite.Sprite):
             self.image = pygame.transform.flip(self.original_image, True, False)
 
 
-    def update(self, tiles, killers):
+    def update(self):
         self.frame += 1
         self.input()
         self.check_grounded(__main__.level["tiles"])
@@ -134,5 +144,4 @@ class Player(pygame.sprite.Sprite):
         self.update_sprite()
         if self.kill_collision(__main__.level["killers"]):
             self.dead = True
-
 
