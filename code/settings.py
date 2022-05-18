@@ -1,21 +1,36 @@
-import os, sys
+import os
+import sys
+
 game_mode = 1
-game_path = os.path.abspath("main.py")
+game_path = os.path.abspath("main.py/../../")
 
-scale = 6
+scale = 2
 
-width = scale * 32*4
-height = scale * 32*3
+width = (32*16)*scale
+height = (32*9)*scale
 
-directory = "/Users/oliverAccount/PycharmProjects/IWBTripoff/"
+directory = game_path + "/"
 if game_mode == 3:
     application_path = os.path.dirname(sys.executable)
     directory = application_path+"/"
 
-image_dict = {
+tile_set1 = {
     1: directory+"graphics/Spike.png",
     0: directory+"graphics/Block0.png",
     2: directory+"graphics/MiniSpike.png",
     "PlayerMask": directory+"graphics/PlayerMask.png",
-    "PlayerIdle": directory+"graphics/PlayerIdle.png"
+    "PlayerIdle": directory+"graphics/PlayerIdle.png",
+    "Troll": directory+"graphics/troll.png"
+}
+
+tile_set2 = {
+    1: directory+"graphics/Spike.png",
+    0: directory+"graphics/cave_tile2.png",
+    2: directory+"graphics/MiniSpike.png",
+    "PlayerMask": directory+"graphics/PlayerMask.png",
+    "PlayerIdle": directory+"graphics/PlayerIdle.png",
+    "troll": directory+"graphics/troll.png",
+    "bag": directory+"graphics/felix.png",
+    "burto": directory+"graphics/burrito_mountain.png",
+    "death_screen": directory+"graphics/death_screen1.png"
 }
