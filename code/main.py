@@ -186,7 +186,7 @@ class World:
         self.bg_visuals = pygame.sprite.Group()
         self.visuals = pygame.sprite.Group()
         self.death_screen = pygame.sprite.GroupSingle()
-        self.bg_visuals.add(BasicSprite((835, 110), self.images["troll"], size=0.55))
+        self.bg_visuals.add(BasicSprite((710, 95), self.images["troll"], size=0.45))
         self.visuals.add(BasicSprite((10, 950), self.images["bag"]))
         self.visuals.add(BasicSprite((2094, 625), self.images["burto"], size=1))
         self.death_screen.add(BasicSprite((100, 200), self.images["death_screen"]))
@@ -228,15 +228,15 @@ class World:
                 level["killers"].remove(sprite)
 
     def draw(self):
-        #BAD FIX LATER
-         self.looping_image(backgrouds[4], 0)
+        # BAD FIX LATER
+        self.looping_image(backgrouds[4], 0)
+
         self.looping_image(backgrouds[3], 0.1)
         self.looping_image(backgrouds[2], 0.3)
         self.looping_image(backgrouds[1], 0.5)
         self.looping_image(backgrouds[0], 1)
         self.bg_offset -= 10
-        
-        
+
         self.bg_visuals.draw(screen)
 
         draw_offset(self.visuals, self.camera_offset)
@@ -295,24 +295,26 @@ class World:
         if self.key_sys.individual_frame_down[pygame.K_s]:
             self.save()
 
+
     def scroll(self):
         player_pos = self.player.hitbox.center
         screen_size = (settings.width, settings.height)
         self.camera_offset = pygame.math.Vector2(-round_down(player_pos[0], screen_size[0]),
                                                  -round_down(player_pos[1], screen_size[1]))
 
-        
-    def looping_image(self, image,speed):
+
+    def looping_image(self, image, speed):
         bg_size = image.get_size()
         for i in range(int(screen_width / bg_size[0]) + 2):
             for v in range(int(screen_height / bg_size[1]) + 2):
-                screen.blit(image, (((self.camera_offset.x+self.bg_offset)*speed % bg_size[0]) + (i-1) * bg_size[0],
-                                 0 + (v - 1) * bg_size[1]))
-                
-                
+                screen.blit(image, (((self.camera_offset.x + self.bg_offset) * speed % bg_size[0]) + (i - 1) * bg_size[0],
+                                    0 + (v - 1) * bg_size[1]))
+
+
     def save(self):
         self.save_position = self.player.hitbox.topleft
         self.save_facing = self.player.direction
+
 
     def reset(self):
         # self.player.position = self.startpos
@@ -443,6 +445,7 @@ class World:
         # else:
         #     self.load_cd = False
 
+
     def save_data(self):
         # pickle_out = open(f'level{0}_data', 'wb')
         # pickle.dump(level, pickle_out)
@@ -459,6 +462,7 @@ class World:
         data_file = open("data.txt", "w")
         data_file.write(data_string)
         data_file.close()
+
 
     def load_data(self, data):
         loaded_objects = load_data(data)
@@ -546,10 +550,7 @@ class BasicSprite(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(topleft=pos)
         self.angle = start_angle % 360
         self.image = pygame.transform.rotate(self.original_image, self.angle)
-        self.image = pygame.transform.scale(self.image, (self.image.get_width()*size, self.image.get_height()*size))
-
-
-
+        self.image = pygame.transform.scale(self.image, (self.image.get_width() * size, self.image.get_height() * size))
 
 
 class Save(pygame.sprite.Sprite):
@@ -580,9 +581,9 @@ backgrouds = []
 for i in range(5):
     bg = pygame.image.load("../graphics/moon_bg_sheet.png").convert_alpha()
     bg = pygame.transform.scale(bg, (bg.get_width() * bg_scale, bg.get_height() * bg_scale))
-    bg = bg.subsurface(((i*bg.get_width()/6, 0), (bg.get_width()/6, bg.get_height())))
+    bg = bg.subsurface(((i * bg.get_width() / 6, 0), (bg.get_width() / 6, bg.get_height())))
     backgrouds.append(bg)
-    
+
 world = World()
 # Game loop
 while is_running:
