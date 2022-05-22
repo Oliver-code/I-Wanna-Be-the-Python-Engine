@@ -17,15 +17,15 @@ screen_height = settings.height
 # pygame setup
 pygame.init()
 
-pygame.mixer.music.load("../sounds/Moonsong.ogg")
-pygame.mixer.music.set_volume(0.5)
+pygame.mixer.music.load(settings.sounds["Moonsong"])
+pygame.mixer.music.set_volume(0)
 
 pygame.mixer.init()
-death_sound = pygame.mixer.Sound("../sounds/vine-boom.mp3")
+death_sound = pygame.mixer.Sound(settings.sounds["death"])
 death_sound.set_volume(0.1)
 
 pygame.font.init()
-screen = pygame.display.set_mode((screen_width, screen_height))
+screen = pygame.display.set_mode((screen_width, screen_height), pygame.SCALED)
 pygame.display.set_caption("I Wanna Steal The Intellectual Property!")
 clock = pygame.time.Clock()
 FPS = pygame.time.Clock()
@@ -171,6 +171,8 @@ def draw_offset(sprites, offset):
     for sprite in sprites:
         sprite.rect.center -= offset
 
+    # if sprite.rect.right+offset.x > 0 or sprite.rect.left+offset.x < screen_width or sprite.rect.top+offset.y < screen_width or sprite.rect.bottom+offset.y > 0:
+
 
 # Classes
 class World:
@@ -192,12 +194,10 @@ class World:
         self.death_screen.add(BasicSprite((100, 200), self.images["death_screen"]))
 
         self.player = player.Player(self.startpos)
-        self.save_position = self.player.position
         self.save_facing = self.player.direction
         self.player_sprite = pygame.sprite.GroupSingle()
         self.player_sprite.add(self.player)
         self.mouse = MouseSystem()
-        self.key_sys = KeySystem()
 
         self.death_cd = False
 
@@ -241,8 +241,10 @@ class World:
 
         draw_offset(self.visuals, self.camera_offset)
 
-        draw_offset(level["tiles"], self.camera_offset)
-        draw_offset(level["killers"], self.camera_offset)
+        for group in level:
+            draw_offset(level[group], self.camera_offset)
+        # draw_offset(level["tiles"], self.camera_offset)
+        # draw_offset(level["killers"], self.camera_offset)
         draw_offset(self.player_sprite, self.camera_offset)
 
         if game_mode < 2:
@@ -272,14 +274,14 @@ class World:
         if self.death_cd:
             self.death_screen.draw(screen)
 
-
     def run(self):
+        key_sys.update()
+
         # does collision
         if game_mode >= 2:
             self.scroll()
 
         if self.player.dead and not self.death_cd:
-            self.reset()
             self.player.kill()
             death_sound.play()
             self.death_cd = True
@@ -289,12 +291,10 @@ class World:
         if game_mode == 1:
             self.create()
             self.mouse.update()
-            self.key_sys.update()
-        if self.key_sys.individual_frame_down[pygame.K_r]:
+        if key_sys.individual_frame_down[pygame.K_r]:
             self.reset()
-        if self.key_sys.individual_frame_down[pygame.K_s]:
+        if key_sys.individual_frame_down[pygame.K_s] and game_mode < 2:
             self.save()
-
 
     def scroll(self):
         player_pos = self.player.hitbox.center
@@ -302,31 +302,28 @@ class World:
         self.camera_offset = pygame.math.Vector2(-round_down(player_pos[0], screen_size[0]),
                                                  -round_down(player_pos[1], screen_size[1]))
 
-
     def looping_image(self, image, speed):
         bg_size = image.get_size()
         for i in range(int(screen_width / bg_size[0]) + 2):
             for v in range(int(screen_height / bg_size[1]) + 2):
-                screen.blit(image, (((self.camera_offset.x + self.bg_offset) * speed % bg_size[0]) + (i - 1) * bg_size[0],
-                                    0 + (v - 1) * bg_size[1]))
-
+                screen.blit(image,
+                            (((self.camera_offset.x + self.bg_offset) * speed % bg_size[0]) + (i - 1) * bg_size[0],
+                             0 + (v - 1) * bg_size[1]))
 
     def save(self):
-        self.save_position = self.player.hitbox.topleft
+        self.player.save_position = self.player.hitbox.topleft
         self.save_facing = self.player.direction
-
 
     def reset(self):
         # self.player.position = self.startpos
-        self.player = player.Player(self.save_position)
+        self.player = player.Player(self.player.save_position)
         self.player.direction = self.save_facing
         self.player_sprite.add(self.player)
         self.scroll()
         self.death_cd = False
 
-
     def create(self):
-        keys = self.key_sys
+        keys = key_sys
         pos = self.mouse.current_pos - self.camera_offset
         self.snap_pos = (pos[0] // self.snap * self.snap, pos[1] // self.snap * self.snap)
 
@@ -378,6 +375,8 @@ class World:
         #                          self.camera_offset.y % bg_size[1] + (v-1) * bg_size[1]))
 
         if keys.individual_frame_down[pygame.K_w]:
+            if self.player.dead:
+                self.player.save_position = pos
             self.player.position = (pos)
 
         if keys.individual_frame_down[pygame.K_TAB]:
@@ -445,7 +444,6 @@ class World:
         # else:
         #     self.load_cd = False
 
-
     def save_data(self):
         # pickle_out = open(f'level{0}_data', 'wb')
         # pickle.dump(level, pickle_out)
@@ -462,7 +460,6 @@ class World:
         data_file = open("data.txt", "w")
         data_file.write(data_string)
         data_file.close()
-
 
     def load_data(self, data):
         loaded_objects = load_data(data)
@@ -556,11 +553,16 @@ class BasicSprite(pygame.sprite.Sprite):
 class Save(pygame.sprite.Sprite):
     def __init__(self, pos):
         super().__init__()
-        self.image_data = settings.tile_set2["Save0"]
-        self.image = pygame.image.load(self.image_data).convert_alpha()
+        self.image1 = pygame.image.load(settings.tile_set2["Save0"]).convert_alpha()
+        self.image2 = pygame.image.load(settings.tile_set2["Save1"]).convert_alpha()
+        self.image = self.image1
         self.init_pos = pos
-        self.rect = self.image.get_rect()
-        # self.tile_id = 0
+        self.rect = self.image.get_rect(topleft=pos)
+    def update_image(self, active):
+        if active:
+            self.image = self.image2
+        else:
+            self.image = self.image1
 
 
 # stuff
@@ -569,6 +571,15 @@ level = {
         Block((32, 288)),
     ),
     "killers": pygame.sprite.Group(
+
+    ),
+    "saves": pygame.sprite.Group(
+        Save((640, 256)),
+        Save((784, 192)),
+        Save((1392, 480)),
+        Save((1616, 512)),
+        Save((1472, -144)),
+        Save((3104, -224)),
 
     )
 
@@ -579,11 +590,12 @@ pygame.mixer.music.play(-1)
 bg_scale = 2.8
 backgrouds = []
 for i in range(5):
-    bg = pygame.image.load("../graphics/moon_bg_sheet.png").convert_alpha()
+    bg = pygame.image.load(settings.tile_set2["bg_sprite_sheet"]).convert_alpha()
     bg = pygame.transform.scale(bg, (bg.get_width() * bg_scale, bg.get_height() * bg_scale))
     bg = bg.subsurface(((i * bg.get_width() / 6, 0), (bg.get_width() / 6, bg.get_height())))
     backgrouds.append(bg)
 
+key_sys = KeySystem()
 world = World()
 # Game loop
 while is_running:
@@ -613,8 +625,13 @@ while is_running:
     screen.blit(fps_text, (screen_width - 30, 0))
 
     # cords
-    cords_text = font.render(
-        f"({round(world.snap_pos[0])}, {round(world.snap_pos[1])}, {world.player.position.x % 3})", True, "White")
+    if game_mode < 2:
+        cords_text = font.render(
+            f"({round(world.snap_pos[0])}, {round(world.snap_pos[1])}, {world.player.position.x % 3})", True, "White")
+    else:
+        cords_text = font.render(
+            f"({round(world.player.position.x)}, {round(world.player.position.y, 1)}, {world.player.position.x % 3})",
+            True, "White")
     screen.blit(cords_text, (3, 0))
 
     # you need this at end of loop, it updates the screen and limits the frame rate
