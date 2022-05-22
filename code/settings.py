@@ -32,5 +32,14 @@ tile_set2 = {
     "troll": directory+"graphics/troll.png",
     "bag": directory+"graphics/felix.png",
     "burto": directory+"graphics/burrito_mountain.png",
-    "death_screen": directory+"graphics/death_screen1.png"
+    "death_screen": directory+"graphics/death_screen1.png",
+    "Save0": directory+"graphics/save0.png",
+    "Save1": directory + "graphics/save1.png",
+    "bg_sprite_sheet": directory + "graphics/moon_bg_sheet.png",
+
+}
+
+sounds = {
+    "Moonsong": directory+"sounds/Moonsong.ogg",
+    "death": directory+"sounds/vine-boom.mp3",
 }
