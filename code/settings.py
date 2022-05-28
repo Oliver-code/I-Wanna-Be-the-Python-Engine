@@ -27,6 +27,7 @@ tile_set2 = {
     1: directory+"graphics/Spike.png",
     0: directory+"graphics/cave_tile2.png",
     2: directory+"graphics/MiniSpike.png",
+    3: directory + "graphics/water.png",
     "PlayerMask": directory+"graphics/PlayerMask.png",
     "PlayerIdle": directory+"graphics/PlayerIdle.png",
     "troll": directory+"graphics/troll.png",
