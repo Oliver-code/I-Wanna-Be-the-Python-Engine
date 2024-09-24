@@ -1,2 +1,2 @@
-# IWSTIP (I Wanna Steal The Intellectual Property)
-I wanna be the guy clone made in python
+# I Wanna Be the Python Engine
+I Wanna Be the Guy engine made from scratch in pygame.
